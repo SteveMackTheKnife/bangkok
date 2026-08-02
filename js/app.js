@@ -41,6 +41,15 @@ function initMap(centerLat, centerLng) {
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, tiles by <a href="https://wikimediafoundation.org/" target="_blank" rel="noopener">Wikimedia</a>'
   }).addTo(map);
+
+  // Safari/iPadOS in particular can finish layout (fonts, grid sizing) a
+  // moment after Leaflet reads the container's size, leaving a blank map
+  // until something forces a resize. Re-measure a few times after load.
+  const revalidate = () => map && map.invalidateSize();
+  window.addEventListener("resize", revalidate);
+  window.addEventListener("orientationchange", revalidate);
+  setTimeout(revalidate, 300);
+  setTimeout(revalidate, 1000);
 }
 
 function confidenceTag(r) {
