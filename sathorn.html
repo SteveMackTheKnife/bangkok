@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사톤 로컬 맛집 21 — Holiday Inn Express Bangkok Sathorn 주변</title>
+<meta name="description" content="Holiday Inn Express Bangkok Sathorn by IHG 주변, 구글 평점 4.0 이상 · 리뷰 500개 이상 로컬 맛집 21곳을 지도와 함께">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <span class="mark">B</span>
+      <span class="word">Bangkok Local Eats<small>호텔 주변 로컬 맛집 가이드</small></span>
+    </a>
+    <div class="navlinks">
+      <a href="sathorn.html" class="active">사톤</a>
+      <a href="sukhumvit.html">수쿰빗</a>
+    </div>
+  </div>
+</nav>
+
+<header class="masthead">
+  <div class="wrap" style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end;">
+    <div style="flex:1; min-width:280px;">
+      <div class="eyebrow">Hotel Restaurant Guide</div>
+      <h1 id="hotel-name">Holiday Inn Express Bangkok Sathorn by IHG</h1>
+      <p class="desc" id="hotel-desc"></p>
+      <div class="stat-strip">
+        <div class="stat"><b class="mono" id="stat-total">-</b><span>선정 맛집</span></div>
+        <div class="stat"><b class="mono" id="stat-rating">-</b><span>평균 평점</span></div>
+        <div class="stat"><b class="mono" id="stat-confirmed">-</b><span>구글 고신뢰</span></div>
+      </div>
+    </div>
+    <div class="masthead-cta">
+      <a class="maps-btn" id="hotel-maps-link" target="_blank" rel="noopener">🗺️ 호텔 위치 · 구글 지도</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="notice">
+    <b>⚠ 데이터 안내</b> — 모든 식당은 구글 평점 4.0 이상 · 리뷰 500개 이상을 기준으로 선정했습니다. 수치는 2026년 8월 웹 리서치 스냅샷이며, 구글 라벨이 명확한 값을 우선 사용하고 그 외에는 RestaurantGuru/TripAdvisor 등 보조 지표를 출처와 함께 표기했습니다. <span class="tag conf-low" style="display:inline;">참고용 수치</span> 배지가 있는 항목은 방문 전 구글 지도에서 재확인을 권장합니다. 이 페이지의 지도 위치는 주소를 기반으로 자동 좌표 변환(OpenStreetMap Nominatim)된 근사치이니 정확한 위치·실제 사진은 "구글 지도에서 열기"로 확인하세요.
+  </div>
+
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="식당 이름, 음식 종류, 메뉴로 검색...">
+    <select id="cat-filter"><option value="all">모든 카테고리</option></select>
+    <select id="sort-select">
+      <option value="rank">추천순</option>
+      <option value="rating">평점 높은순</option>
+      <option value="reviews">리뷰 많은순</option>
+    </select>
+    <span class="count-tag" id="count-tag"></span>
+  </div>
+
+  <div class="split">
+    <div class="list-col" id="list-col"></div>
+    <div class="map-col"><div id="map"></div></div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    데이터는 2026년 8월 기준 웹 리서치를 바탕으로 정리했으며, 평점·리뷰 수는 시간이 지나며 변동될 수 있습니다. 지도 좌표는 OpenStreetMap Nominatim으로 자동 변환된 근사치입니다. 방문 전 구글 지도에서 최신 정보를 다시 확인하는 것을 권장합니다.
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="js/geocode.js"></script>
+<script src="js/data-sathorn.js"></script>
+<script src="js/app.js"></script>
+<script>initHotelPage(HOTEL_SATHORN, SATHORN_RESTAURANTS, {lat:13.7248, lng:100.5296});</script>
+</body>
+</html>
