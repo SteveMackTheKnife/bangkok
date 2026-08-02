@@ -34,13 +34,17 @@ function makePinIcon(color, glyph, big) {
 
 function initMap(centerLat, centerLng) {
   map = L.map("map", { scrollWheelZoom: true }).setView([centerLat, centerLng], 15);
-  // "osm-intl" renders place/street labels in their international (mostly
-  // English) name where available, instead of Thai-only script — much more
-  // readable for non-Thai-speaking visitors than the default OSM tile style.
-  L.tileLayer("https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png", {
+  // Standard OSM raster tiles — the most reliably-available free tile
+  // source (no key, no rate-limit surprises). Place/street labels follow
+  // whatever OSM has tagged locally, which for Thailand is often Thai
+  // script; the "구글 지도에서 열기" link (opened with &hl=ko) is the
+  // reliable way to see a fully Korean-localized map.
+  const tiles = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, tiles by <a href="https://wikimediafoundation.org/" target="_blank" rel="noopener">Wikimedia</a>'
+    subdomains: "abc",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
   }).addTo(map);
+  tiles.on("tileerror", (e) => console.warn("Map tile failed to load:", e && e.tile && e.tile.src));
 
   // Safari/iPadOS in particular can finish layout (fonts, grid sizing) a
   // moment after Leaflet reads the container's size, leaving a blank map
