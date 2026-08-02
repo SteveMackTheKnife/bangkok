@@ -13,7 +13,7 @@ function categoryColor(cat) {
   return getComputedStyle(document.documentElement).getPropertyValue("--cat-" + cat).trim() || "#a3701f";
 }
 function starString(rating) { const full = Math.round(rating); return "★".repeat(full) + "☆".repeat(5 - full); }
-function mapsSearchUrl(q) { return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q); }
+function mapsSearchUrl(q) { return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q) + "&hl=ko"; }
 function esc(s) { const d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
 
 const geoQueue = new GeocodeQueue(1100);
@@ -34,9 +34,12 @@ function makePinIcon(color, glyph, big) {
 
 function initMap(centerLat, centerLng) {
   map = L.map("map", { scrollWheelZoom: true }).setView([centerLat, centerLng], 15);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  // "osm-intl" renders place/street labels in their international (mostly
+  // English) name where available, instead of Thai-only script — much more
+  // readable for non-Thai-speaking visitors than the default OSM tile style.
+  L.tileLayer("https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png", {
     maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, tiles by <a href="https://wikimediafoundation.org/" target="_blank" rel="noopener">Wikimedia</a>'
   }).addTo(map);
 }
 
