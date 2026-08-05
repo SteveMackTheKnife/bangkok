@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>방콕 여행 경비 — Bangkok Local Eats</title>
+<meta name="description" content="2023년 방콕 여행 실제 지출 기록을 확인하고, 새로운 여행 경비를 입력·관리하는 경비 트래커">
+<meta name="color-scheme" content="dark">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <span class="mark">B</span>
+      <span class="word">Bangkok Local Eats<small>호텔 주변 로컬 맛집 가이드</small></span>
+    </a>
+    <div class="navlinks">
+      <a href="sathorn.html">사톤</a>
+      <a href="sukhumvit.html">수쿰빗</a>
+      <a href="expense.html" class="active">경비</a>
+    </div>
+  </div>
+</nav>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Trip Expense Tracker</div>
+    <h1 class="gradient-text">방콕 여행 경비</h1>
+    <p class="desc">2023년 7월 15일 ~ 22일 실제 지출 기록이 기본으로 담겨 있습니다. 아래에서 항목을 확인하고, 새 지출을 직접 입력해 관리하세요. 입력한 내용은 이 브라우저에만 저장됩니다.</p>
+  </div>
+</header>
+
+<main class="wrap" style="padding-bottom:60px;">
+  <section class="exp-summary-grid" id="exp-summary-grid"></section>
+
+  <section class="exp-card">
+    <h2>카테고리별 지출</h2>
+    <div class="exp-bars" id="exp-bars"></div>
+  </section>
+
+  <section class="exp-card">
+    <h2>지출 추가</h2>
+    <form class="exp-form" id="exp-form">
+      <div class="exp-field">
+        <label for="f-date">날짜</label>
+        <input type="date" id="f-date" required>
+      </div>
+      <div class="exp-field span2">
+        <label for="f-category">카테고리</label>
+        <select id="f-category">
+          <option value="transport">교통</option>
+          <option value="food" selected>식비</option>
+          <option value="shopping">쇼핑</option>
+          <option value="lodging">숙박</option>
+          <option value="flight">항공</option>
+          <option value="other">기타</option>
+        </select>
+      </div>
+      <div class="exp-field span2">
+        <label for="f-place">장소 / 내용</label>
+        <input type="text" id="f-place" placeholder="예: 왓아룬 근처 식당" required>
+      </div>
+      <div class="exp-field">
+        <label for="f-method">결제수단</label>
+        <select id="f-method">
+          <option value="현금">현금</option>
+          <option value="카드">카드</option>
+        </select>
+      </div>
+
+      <div class="exp-field">
+        <label for="f-detail">상세 (선택)</label>
+        <input type="text" id="f-detail" placeholder="예: 팟타이 2, 맥주">
+      </div>
+      <div class="exp-field amount-field">
+        <label for="f-amount">금액</label>
+        <input type="number" id="f-amount" min="0" step="0.01" placeholder="0" required>
+        <select id="f-currency">
+          <option value="THB">THB</option>
+          <option value="KRW">KRW</option>
+        </select>
+      </div>
+      <div class="exp-field span2">
+        <label for="f-note">메모 (선택)</label>
+        <input type="text" id="f-note" placeholder="예: 3명 분">
+      </div>
+      <div class="exp-field exp-submit">
+        <button type="submit" class="btn">+ 지출 추가</button>
+      </div>
+    </form>
+    <p class="exp-rate-note">THB → KRW 환율: <input type="number" id="f-rate" min="1" step="0.1"> 원 (2023년 기록은 실제 사용된 고정 환율 37원을 그대로 표시합니다)</p>
+  </section>
+
+  <div class="exp-toolbar">
+    <span class="count-tag" id="exp-count"></span>
+    <button class="btn ghost" id="reset-btn" type="button">2023년 기본 데이터로 초기화</button>
+  </div>
+
+  <section id="exp-days"></section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    2023년 데이터는 실제 방콕 여행 당시 기록한 지출 내역(항공권·숙박·현지 지출)을 그대로 옮긴 것입니다. 새로 입력하는 지출은 이 브라우저의 로컬 저장소(localStorage)에만 저장되며, 다른 기기·브라우저와 동기화되지 않습니다.
+  </div>
+</footer>
+
+<script src="js/data-expense.js"></script>
+<script src="js/expense.js"></script>
+</body>
+</html>
