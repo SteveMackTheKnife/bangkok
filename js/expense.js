@@ -1,4 +1,4 @@
-const STORAGE_KEY = "bangkok-expense-v1";
+const SECRET_KEY = "bangkok-expense-secret";
 const RATE_KEY = "bangkok-expense-rate";
 
 const CATEGORY_META = {
@@ -22,31 +22,46 @@ function fmtDateLabel(dateStr) {
 
 function getRate() { return Number(localStorage.getItem(RATE_KEY)) || THB_TO_KRW_RATE; }
 function setRate(v) { localStorage.setItem(RATE_KEY, String(v)); }
+function getSecret() { return localStorage.getItem(SECRET_KEY) || ""; }
+function setSecret(v) { localStorage.setItem(SECRET_KEY, v); }
 
-function loadExpenses() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    const seeded = SEED_EXPENSES.map((r, i) => Object.assign({ id: "seed-" + i, isSeed: true }, r));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
-    return seeded;
-  }
-  return JSON.parse(raw);
+function baseHeaders() {
+  return { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY };
 }
-function saveExpenses(list) { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
-function resetToSeed() {
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(RATE_KEY);
-  expenses = loadExpenses();
-  renderAll();
+function writeHeaders() {
+  return Object.assign(baseHeaders(), {
+    "Content-Type": "application/json",
+    "Prefer": "return=representation",
+    "x-app-secret": getSecret()
+  });
 }
 
-let expenses = loadExpenses();
+async function apiFetchExpenses() {
+  const res = await fetch(SUPABASE_REST + "?select=*&order=date.asc,created_at.asc", { headers: baseHeaders() });
+  if (!res.ok) throw new Error("조회 실패 (" + res.status + ")");
+  return res.json();
+}
+async function apiInsertExpense(item) {
+  const res = await fetch(SUPABASE_REST, { method: "POST", headers: writeHeaders(), body: JSON.stringify([item]) });
+  if (!res.ok) throw new Error(res.status === 401 || res.status === 403 ? "비밀번호가 올바르지 않습니다" : "등록 실패 (" + res.status + ")");
+  return res.json();
+}
+async function apiDeleteExpense(id) {
+  const res = await fetch(SUPABASE_REST + "?id=eq." + encodeURIComponent(id), { method: "DELETE", headers: writeHeaders() });
+  if (!res.ok) throw new Error(res.status === 401 || res.status === 403 ? "비밀번호가 올바르지 않습니다" : "삭제 실패 (" + res.status + ")");
+}
+async function apiResetToSeed() {
+  const res = await fetch(SUPABASE_REST + "?is_seed=eq.false", { method: "DELETE", headers: writeHeaders() });
+  if (!res.ok) throw new Error(res.status === 401 || res.status === 403 ? "비밀번호가 올바르지 않습니다" : "초기화 실패 (" + res.status + ")");
+}
+
+let expenses = [];
 
 function renderStats() {
   const rate = getRate();
-  const totalKRW = expenses.reduce((s, e) => s + e.krw, 0);
-  const totalTHB = expenses.reduce((s, e) => s + (e.thb || 0), 0);
-  const cashTHB = expenses.reduce((s, e) => s + (e.thb != null && e.method === "현금" ? e.thb : 0), 0);
+  const totalKRW = expenses.reduce((s, e) => s + Number(e.krw), 0);
+  const totalTHB = expenses.reduce((s, e) => s + (e.thb != null ? Number(e.thb) : 0), 0);
+  const cashTHB = expenses.reduce((s, e) => s + (e.thb != null && e.method === "현금" ? Number(e.thb) : 0), 0);
   const remainingTHB = TRIP_BUDGET_THB - cashTHB;
   const remainingKRW = remainingTHB * rate;
   const dates = [...new Set(expenses.map(e => e.date))].sort();
@@ -67,10 +82,15 @@ function renderStats() {
     </div>`).join("");
 }
 
-function renderBars() {
+function categorySums() {
   const sums = {};
   CATEGORY_ORDER.forEach(c => sums[c] = { krw: 0, count: 0 });
-  expenses.forEach(e => { sums[e.category].krw += e.krw; sums[e.category].count += 1; });
+  expenses.forEach(e => { sums[e.category].krw += Number(e.krw); sums[e.category].count += 1; });
+  return sums;
+}
+
+function renderBars() {
+  const sums = categorySums();
   const max = Math.max(1, ...CATEGORY_ORDER.map(c => sums[c].krw));
   const sorted = [...CATEGORY_ORDER].sort((a, b) => sums[b].krw - sums[a].krw);
 
@@ -94,9 +114,14 @@ function renderDays() {
 
   document.getElementById("exp-count").textContent = expenses.length + "건의 지출 기록";
 
+  if (!dates.length) {
+    document.getElementById("exp-days").innerHTML = `<p class="exp-rate-note">아직 등록된 지출이 없습니다.</p>`;
+    return;
+  }
+
   document.getElementById("exp-days").innerHTML = dates.map(date => {
     const rows = byDate[date];
-    const dayTotal = rows.reduce((s, e) => s + e.krw, 0);
+    const dayTotal = rows.reduce((s, e) => s + Number(e.krw), 0);
     const rowsHtml = rows.map(e => {
       const meta = CATEGORY_META[e.category];
       return `
@@ -108,7 +133,7 @@ function renderDays() {
         </div>
         <div class="exp-amt">
           <span class="krw">${fmtKRW(e.krw)}</span>
-          ${e.thb != null ? `<span class="thb">${fmtTHB(e.thb)}</span>` : ""}
+          ${e.thb != null ? `<span class="thb">${fmtTHB(Number(e.thb))}</span>` : ""}
         </div>
         <div class="exp-method">${esc(e.method)}</div>
         <button class="exp-del" type="button" title="삭제" data-id="${esc(e.id)}">✕</button>
@@ -132,12 +157,17 @@ function renderDays() {
     h.addEventListener("click", () => h.closest(".day-group").classList.toggle("open"));
   });
   document.querySelectorAll(".exp-del").forEach(btn => {
-    btn.addEventListener("click", (ev) => {
+    btn.addEventListener("click", async (ev) => {
       ev.stopPropagation();
+      if (!confirm("이 지출 항목을 삭제할까요? (모든 방문자에게 반영됩니다)")) return;
       const id = btn.dataset.id;
-      expenses = expenses.filter(e => e.id !== id);
-      saveExpenses(expenses);
-      renderAll();
+      try {
+        await apiDeleteExpense(id);
+        expenses = expenses.filter(e => e.id !== id);
+        renderAll();
+      } catch (err) {
+        alert(err.message);
+      }
     });
   });
 }
@@ -148,6 +178,58 @@ function renderAll() {
   renderDays();
 }
 
+function setStatus(msg, isError) {
+  const el = document.getElementById("exp-status");
+  if (!msg) { el.style.display = "none"; el.textContent = ""; return; }
+  el.style.display = "block";
+  el.textContent = msg;
+  el.classList.toggle("warn", !!isError);
+}
+
+async function reload() {
+  setStatus("불러오는 중...");
+  try {
+    expenses = await apiFetchExpenses();
+    setStatus("");
+    renderAll();
+  } catch (err) {
+    setStatus("데이터를 불러오지 못했습니다: " + err.message, true);
+  }
+}
+
+function exportToExcel() {
+  const rows = [...expenses].sort((a, b) => a.date.localeCompare(b.date));
+  const sheet1 = rows.map(e => ({
+    "날짜": e.date,
+    "카테고리": CATEGORY_META[e.category].label,
+    "장소": e.place,
+    "상세": e.detail || "",
+    "결제수단": e.method,
+    "금액(THB)": e.thb != null ? Number(e.thb) : "",
+    "금액(KRW)": Number(e.krw),
+    "메모": e.note || ""
+  }));
+
+  const sums = categorySums();
+  const totalKRW = expenses.reduce((s, e) => s + Number(e.krw), 0);
+  const cashTHB = expenses.reduce((s, e) => s + (e.thb != null && e.method === "현금" ? Number(e.thb) : 0), 0);
+  const sheet2 = CATEGORY_ORDER.map(c => ({
+    "카테고리": CATEGORY_META[c].label, "건수": sums[c].count, "합계(KRW)": sums[c].krw
+  }));
+  sheet2.push({ "카테고리": "합계", "건수": expenses.length, "합계(KRW)": totalKRW });
+  sheet2.push({ "카테고리": "", "건수": "", "합계(KRW)": "" });
+  sheet2.push({ "카테고리": "환전 예산(THB)", "건수": "", "합계(KRW)": TRIP_BUDGET_THB });
+  sheet2.push({ "카테고리": "현금 지출(THB)", "건수": "", "합계(KRW)": cashTHB });
+  sheet2.push({ "카테고리": "잔액(THB)", "건수": "", "합계(KRW)": TRIP_BUDGET_THB - cashTHB });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sheet1), "지출 내역");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sheet2), "요약");
+
+  const today = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `방콕여행경비_${today}.xlsx`);
+}
+
 function initExpensePage() {
   const rateInput = document.getElementById("f-rate");
   rateInput.value = getRate();
@@ -156,9 +238,13 @@ function initExpensePage() {
     if (v > 0) { setRate(v); renderAll(); }
   });
 
+  const secretInput = document.getElementById("f-secret");
+  secretInput.value = getSecret();
+  secretInput.addEventListener("change", () => setSecret(secretInput.value));
+
   document.getElementById("f-date").value = new Date().toISOString().slice(0, 10);
 
-  document.getElementById("exp-form").addEventListener("submit", (ev) => {
+  document.getElementById("exp-form").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const date = document.getElementById("f-date").value;
     const category = document.getElementById("f-category").value;
@@ -174,25 +260,31 @@ function initExpensePage() {
     const thb = currency === "THB" ? amount : null;
     const krw = currency === "THB" ? Math.round(amount * rate * 100) / 100 : amount;
 
-    expenses.push({
-      id: "u-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-      date, category, place, detail, thb, krw, method, note, isSeed: false
-    });
-    saveExpenses(expenses);
-    renderAll();
-
-    ev.target.reset();
-    document.getElementById("f-date").value = date;
-    document.getElementById("f-category").value = category;
-  });
-
-  document.getElementById("reset-btn").addEventListener("click", () => {
-    if (confirm("직접 입력한 지출 기록이 모두 삭제되고 2023년 기본 데이터로 초기화됩니다. 계속할까요?")) {
-      resetToSeed();
+    try {
+      const [created] = await apiInsertExpense({ date, category, place, detail, thb, krw, method, note, is_seed: false });
+      expenses.push(created);
+      renderAll();
+      ev.target.reset();
+      document.getElementById("f-date").value = date;
+      document.getElementById("f-category").value = category;
+    } catch (err) {
+      alert(err.message);
     }
   });
 
-  renderAll();
+  document.getElementById("reset-btn").addEventListener("click", async () => {
+    if (!confirm("직접 입력한 지출 기록이 모두 삭제되고 2023년 기본 데이터로 초기화됩니다. 이 작업은 모든 방문자가 보는 데이터에 영향을 줍니다. 계속할까요?")) return;
+    try {
+      await apiResetToSeed();
+      await reload();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  document.getElementById("export-btn").addEventListener("click", exportToExcel);
+
+  reload();
 }
 
 initExpensePage();

@@ -256,6 +256,7 @@ img{ max-width:100%; display:block; }
 .exp-form .btn{ padding:10px 14px; font-size:.82rem; white-space:nowrap; }
 .exp-rate-note{ font-size:.72rem; color:var(--text-faint); margin-top:10px; }
 .exp-rate-note input{ width:56px; border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:6px; padding:2px 6px; font-family:inherit; font-size:.72rem; }
+.exp-rate-note.warn{ color:var(--bad); }
 
 /* toolbar row above the daily list */
 .exp-toolbar{ display:flex; align-items:center; gap:12px; padding:8px 0 4px; flex-wrap:wrap; }

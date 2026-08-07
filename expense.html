@@ -7,6 +7,7 @@
 <meta name="description" content="2023년 방콕 여행 실제 지출 기록을 확인하고, 새로운 여행 경비를 입력·관리하는 경비 트래커">
 <meta name="color-scheme" content="dark">
 <link rel="stylesheet" href="css/style.css">
+<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <nav class="topnav">
@@ -27,11 +28,12 @@
   <div class="wrap">
     <div class="eyebrow">Trip Expense Tracker</div>
     <h1 class="gradient-text">방콕 여행 경비</h1>
-    <p class="desc">2023년 7월 15일 ~ 22일 실제 지출 기록이 기본으로 담겨 있습니다. 아래에서 항목을 확인하고, 새 지출을 직접 입력해 관리하세요. 입력한 내용은 이 브라우저에만 저장됩니다.</p>
+    <p class="desc">2023년 7월 15일 ~ 22일 실제 지출 기록이 기본으로 담겨 있습니다. 아래에서 항목을 확인하고, 새 지출을 직접 입력해 관리하세요. 모든 데이터는 공유 데이터베이스에 저장되어 누구나 조회할 수 있으며, 등록·삭제에는 비밀번호가 필요합니다.</p>
   </div>
 </header>
 
 <main class="wrap" style="padding-bottom:60px;">
+  <p class="exp-rate-note" id="exp-status" style="display:none;"></p>
   <section class="exp-summary-grid" id="exp-summary-grid"></section>
 
   <section class="exp-card">
@@ -85,15 +87,20 @@
         <label for="f-note">메모 (선택)</label>
         <input type="text" id="f-note" placeholder="예: 3명 분">
       </div>
+      <div class="exp-field">
+        <label for="f-secret">관리자 비밀번호</label>
+        <input type="password" id="f-secret" placeholder="등록/삭제 비밀번호">
+      </div>
       <div class="exp-field exp-submit">
         <button type="submit" class="btn">+ 지출 추가</button>
       </div>
     </form>
-    <p class="exp-rate-note">THB → KRW 환율: <input type="number" id="f-rate" min="1" step="0.1"> 원 (2023년 기록은 실제 사용된 고정 환율 37원을 그대로 표시합니다)</p>
+    <p class="exp-rate-note">THB → KRW 환율: <input type="number" id="f-rate" min="1" step="0.1"> 원 (2023년 기록은 실제 사용된 고정 환율 37원을 그대로 표시합니다) · 비밀번호는 이 브라우저에만 저장되며 등록·삭제 요청마다 함께 전송됩니다.</p>
   </section>
 
   <div class="exp-toolbar">
     <span class="count-tag" id="exp-count"></span>
+    <button class="btn ghost" id="export-btn" type="button">엑셀로 내보내기</button>
     <button class="btn ghost" id="reset-btn" type="button">2023년 기본 데이터로 초기화</button>
   </div>
 
@@ -102,11 +109,12 @@
 
 <footer class="site-footer">
   <div class="wrap">
-    2023년 데이터는 실제 방콕 여행 당시 기록한 지출 내역(항공권·숙박·현지 지출)을 그대로 옮긴 것입니다. 새로 입력하는 지출은 이 브라우저의 로컬 저장소(localStorage)에만 저장되며, 다른 기기·브라우저와 동기화되지 않습니다.
+    2023년 데이터는 실제 방콕 여행 당시 기록한 지출 내역(항공권·숙박·현지 지출)을 그대로 옮긴 것입니다. 모든 지출 데이터는 Supabase 데이터베이스에 저장되어 누구나 조회할 수 있으며, 새 지출 등록·삭제·초기화에는 관리자 비밀번호가 필요합니다.
   </div>
 </footer>
 
 <script src="js/data-expense.js"></script>
+<script src="js/supabase-config.js"></script>
 <script src="js/expense.js"></script>
 </body>
 </html>
